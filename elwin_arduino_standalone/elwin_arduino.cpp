@@ -69,6 +69,9 @@ Elwin::~Elwin()
 
 int Elwin::init()
 {
+    // Seed random number generator from an unused analog input:
+    randomSeed(analogRead(A0));
+
     eyes.set_ss_pin(SPI_SS_PIN);
     eyes.init();
 
@@ -78,6 +81,12 @@ int Elwin::init()
     eyeX=3;
     eyeY=3;
     eye_id = EYE_BOTH;
+
+    action_state = ACT_LOOKING;
+    act_counter = 0;
+    blink_countdown = 200;
+    pupil_countdown = 100;
+    newX = 3; newY = 3;
 
     return 0;
 }
@@ -124,6 +133,15 @@ int Elwin::make()
             eyes_state = ST_OPEN;
             eye_id = EYE_RIGHT;
         }
+        else if(c == '1') {
+            action_state = ACT_LOOKING;
+        }
+        else if(c == '2') {
+            action_state = ACT_SQUINT;
+        }
+        else if(c == '3') {
+            action_state = ACT_MODEST;
+        }
         else {
             eyes_state = ST_BLINK;
             eye_id = EYE_BOTH;
@@ -141,17 +159,62 @@ int Elwin::make()
         eyes.writeDisplay();
     }
     else if(eyes_state == ST_CLOSE) {
-        make_eye_sequence(eye_id, BLINK_BITMAP, CLOSE_SEQUENCE);
+        //make_eye_sequence(eye_id, BLINK_BITMAP, CLOSE_SEQUENCE);
+        make_blink_bitmap_sequence(eye_id, closeIndex, sizeof(closeIndex));
     }
     else if(eyes_state == ST_OPEN) {
-        make_eye_sequence(eye_id, BLINK_BITMAP, OPEN_SEQUENCE);
+        //make_eye_sequence(eye_id, BLINK_BITMAP, OPEN_SEQUENCE);
+        make_blink_bitmap_sequence(eye_id, openIndex, sizeof(openIndex));
     }
     else if(eyes_state == ST_BLINK) {
-        make_eye_sequence(eye_id, BLINK_BITMAP, BLINK_SEQUENCE);
+        //make_eye_sequence(eye_id, BLINK_BITMAP, BLINK_SEQUENCE);
+        make_blink_bitmap_sequence(eye_id, blinkIndex, sizeof(blinkIndex));
     }
 
     //delay(100);
 #endif
+
+    return 0;
+}
+
+int Elwin::make_action()
+{
+    switch (action_state) {
+    case ACT_LOOKING:
+
+        if(--blink_countdown <= 0) {
+            blink_countdown = random(100, 600);
+            eye_id = EYE_BOTH;
+            eyes_state = ST_BLINK;
+            Serial.println(F("blink"));
+            Serial.println(blink_countdown);
+        }
+        if(--pupil_countdown <= 0) {
+            pupil_countdown = random(500, 2000);
+            newX = random(7); newY = random(7);
+            //int dX   = newX - 3;  int dY   = newY - 3;
+            Serial.println(F("pupil"));
+            Serial.print(newX); Serial.println(F(" ")); Serial.println(newY);
+        }
+        if(--act_counter  <= 0) {
+            act_counter = 100;
+            if(newX>eyeX)
+                eyeX++;
+            else if(newX<eyeX) {
+                eyeX--;
+            }
+            if(newY>eyeY)
+                eyeY++;
+            else if(newY<eyeY) {
+                eyeY--;
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    make();
 
     return 0;
 }

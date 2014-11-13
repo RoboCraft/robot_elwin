@@ -13,6 +13,10 @@
 #include <Servo.h>
 #endif
 
+// actions states:
+enum {ACT_SLEEP=0, ACT_LOOKING, ACT_SQUINT, ACT_MODEST};
+
+// eyes states:
 enum {ST_NONE=0, ST_CENTER=1, ST_UP, ST_DOWN, ST_LEFT, ST_RIGHT,
       ST_CLOSE, ST_OPEN, ST_BLINK};
 
@@ -27,6 +31,7 @@ public:
 
     int init();
     int make();
+    int make_action();
 
     void make_eye_sequence(int eye_id, int bitmap_id, int sequence_id);
     void make_blink_bitmap_sequence(int eye_id, uint8_t* seq, size_t seq_size);
@@ -34,6 +39,12 @@ public:
     void check_pupil_position();
 
     //int state;
+
+    int action_state;
+    int act_counter;
+    int blink_countdown; // countdown to next blink
+    int pupil_countdown;
+    int newX; int newY;
 
 #if defined(USE_SERVO)
     Servo servo[SERVO_COUNT];
