@@ -48,6 +48,17 @@ public:
 
 #if defined(USE_SERVO)
     Servo servo[SERVO_COUNT];
+
+    int head_yaw;
+    int head_roll;
+    int head_pitch;
+
+    int new_yaw;
+    int new_roll;
+    int new_pitch;
+
+    int head_countdown;
+    int head_action_countdown;
 #endif
 
     SPI_LedMatrix eyes;

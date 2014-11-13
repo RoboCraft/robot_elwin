@@ -12,47 +12,47 @@
 // https://github.com/adafruit/Adafruit-LED-Backpack-Library/blob/master/examples/roboface/roboface.pde
 //
 static const uint8_t PROGMEM // Bitmaps are stored in program memory
-  blinkImg[][8] = {    // Eye animation frames
-  { B00111100,         // Fully open eye
-    B01111110,
-    B11111111,
-    B11111111,
-    B11111111,
-    B11111111,
-    B01111110,
-    B00111100 },
-  { B00000000,
-    B01111110,
-    B11111111,
-    B11111111,
-    B11111111,
-    B11111111,
-    B01111110,
-    B00111100 },
-  { B00000000,
-    B00000000,
-    B00111100,
-    B11111111,
-    B11111111,
-    B11111111,
-    B00111100,
-    B00000000 },
-  { B00000000,
-    B00000000,
-    B00000000,
-    B00111100,
-    B11111111,
-    B01111110,
-    B00011000,
-    B00000000 },
-  { B00000000,         // Fully closed eye
-    B00000000,
-    B00000000,
-    B00000000,
-    B10000001,
-    B01111110,
-    B00000000,
-    B00000000 } };
+blinkImg[][8] = {    // Eye animation frames
+                     { B00111100,         // Fully open eye
+                       B01111110,
+                       B11111111,
+                       B11111111,
+                       B11111111,
+                       B11111111,
+                       B01111110,
+                       B00111100 },
+                     { B00000000,
+                       B01111110,
+                       B11111111,
+                       B11111111,
+                       B11111111,
+                       B11111111,
+                       B01111110,
+                       B00111100 },
+                     { B00000000,
+                       B00000000,
+                       B00111100,
+                       B11111111,
+                       B11111111,
+                       B11111111,
+                       B00111100,
+                       B00000000 },
+                     { B00000000,
+                       B00000000,
+                       B00000000,
+                       B00111100,
+                       B11111111,
+                       B01111110,
+                       B00011000,
+                       B00000000 },
+                     { B00000000,         // Fully closed eye
+                       B00000000,
+                       B00000000,
+                       B00000000,
+                       B10000001,
+                       B01111110,
+                       B00000000,
+                       B00000000 } };
 
 uint8_t blinkIndex[] = { 1, 2, 3, 4, 3, 2, 1 }; // Blink bitmap sequence
 uint8_t closeIndex[] = { 1, 2, 3, 4 }; // Close bitmap sequence
@@ -87,6 +87,34 @@ int Elwin::init()
     blink_countdown = 200;
     pupil_countdown = 100;
     newX = 3; newY = 3;
+
+#if defined(USE_SERVO)
+
+    head_yaw = HEAD_YAW_CENTER;
+    head_roll = HEAD_ROLL_CENTER;
+    head_pitch = HEAD_PITCH_CENTER;
+
+    pinMode(2, OUTPUT);
+    pinMode(3, OUTPUT);
+    pinMode(4, OUTPUT);
+
+    servo[0].attach(2);
+    servo[1].attach(3);
+    servo[2].attach(4);
+
+    servo[0].write(head_yaw);
+    delay(100);
+    servo[1].write(head_roll);
+    delay(100);
+    servo[2].write(head_pitch);
+    delay(100);
+
+    new_yaw = HEAD_YAW_CENTER;
+    new_roll = HEAD_ROLL_CENTER;
+    new_pitch = HEAD_PITCH_CENTER;
+    head_countdown = 1500;
+    head_action_countdown = 7;
+#endif //#if defined(USE_SERVO)
 
     return 0;
 }
@@ -181,7 +209,6 @@ int Elwin::make_action()
 {
     switch (action_state) {
     case ACT_LOOKING:
-
         if(--blink_countdown <= 0) {
             blink_countdown = random(100, 600);
             eye_id = EYE_BOTH;
@@ -194,21 +221,100 @@ int Elwin::make_action()
             newX = random(7); newY = random(7);
             //int dX   = newX - 3;  int dY   = newY - 3;
             Serial.println(F("pupil"));
-            Serial.print(newX); Serial.println(F(" ")); Serial.println(newY);
+            Serial.print(newX); Serial.print(F(" ")); Serial.println(newY);
         }
+
         if(--act_counter  <= 0) {
             act_counter = 100;
-            if(newX>eyeX)
+            if(newX>eyeX) {
                 eyeX++;
+            }
             else if(newX<eyeX) {
                 eyeX--;
             }
-            if(newY>eyeY)
+            if(newY>eyeY) {
                 eyeY++;
+            }
             else if(newY<eyeY) {
                 eyeY--;
             }
         }
+
+#if defined(USE_SERVO)
+        if(--head_countdown <= 0) {
+            head_countdown = random(700, 1200);
+
+            if( random(100) < 30 ) {
+                new_yaw = HEAD_YAW_CENTER;
+                new_roll = HEAD_ROLL_CENTER;
+                new_pitch = HEAD_PITCH_CENTER;
+            }
+            else {
+                if( random(100) < 30 ) {
+                    new_yaw = HEAD_YAW_CENTER - random(40);
+                }
+                else if(random(100) < 30) {
+                    new_yaw = HEAD_YAW_CENTER + random(40);
+                }
+                if( random(100) < 40 ) {
+                    new_roll = HEAD_ROLL_CENTER - random(45);
+                }
+                else if(random(100) < 40) {
+                    new_roll = HEAD_ROLL_CENTER + random(45);
+                }
+                if( random(100) < 50 ) {
+                    new_pitch = HEAD_PITCH_CENTER - random(45);
+                    newX = 3;
+                    newY = 5;
+                }
+                else {
+                    new_pitch = HEAD_PITCH_CENTER + random(45);
+                    newX = 3;
+                    newY = 1;
+                }
+            }
+
+            Serial.println(F("head"));
+            Serial.print(F("Y: "));
+            Serial.print(head_yaw);
+            Serial.print(F(" R: "));
+            Serial.print(head_roll);
+            Serial.print(F(" P: "));
+            Serial.println(head_pitch);
+            Serial.print(F("Y2: "));
+            Serial.print(new_yaw);
+            Serial.print(F(" R2: "));
+            Serial.print(new_roll);
+            Serial.print(F(" P2: "));
+            Serial.println(new_pitch);
+        }
+
+        if(--head_action_countdown <= 0) {
+            head_action_countdown = 6;
+            if(new_yaw > head_yaw) {
+                head_yaw++;
+            }
+            else if(new_yaw < head_yaw) {
+                head_yaw--;
+            }
+            if(new_roll > head_roll) {
+                head_roll++;
+            }
+            else if(new_roll < head_roll) {
+                head_roll--;
+            }
+            if(new_pitch > head_pitch) {
+                head_pitch++;
+            }
+            else if(new_pitch < head_pitch) {
+                head_pitch--;
+            }
+
+            servo[0].write(head_yaw);
+            servo[1].write(head_roll);
+            servo[2].write(head_pitch);
+        }
+#endif
         break;
     default:
         break;

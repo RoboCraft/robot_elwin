@@ -17,6 +17,10 @@
 // SPI SS pin
 #define SPI_SS_PIN 53
 
+#define HEAD_YAW_CENTER     90
+#define HEAD_ROLL_CENTER    110
+#define HEAD_PITCH_CENTER   90
+
 struct Timings
 {
     unsigned long blink_time;
