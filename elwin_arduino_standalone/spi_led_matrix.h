@@ -27,14 +27,15 @@ enum {
     EYE_BOTH = 2
 };
 
-#define LEDS_MATRIX_L (8)
-#define LEDS_MATRIX_SIZE (16) //8x8
-
 class SPI_LedMatrix
 {
 public:
+    SPI_LedMatrix();
     SPI_LedMatrix(int ss_pin);
     ~SPI_LedMatrix();
+
+    void init();
+    void set_ss_pin(int val) { ss_pin = val; pinMode(ss_pin, OUTPUT); }
 
     void clear(int mat_id);
     void drawPixel(int mat_id, int x, int y, int val);

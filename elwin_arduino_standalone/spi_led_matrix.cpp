@@ -6,13 +6,15 @@
 
 #include "spi_led_matrix.h"
 
+SPI_LedMatrix::SPI_LedMatrix()
+{
+
+}
+
 SPI_LedMatrix::SPI_LedMatrix(int _ss_pin):
     ss_pin(_ss_pin)
 {
-    SPI.begin();
-    pinMode(ss_pin, OUTPUT);
-    memset(buf, 0, sizeof(buf));
-    memset(buf2, 0, sizeof(buf2));
+    init();
 }
 
 SPI_LedMatrix::~SPI_LedMatrix()
@@ -20,9 +22,17 @@ SPI_LedMatrix::~SPI_LedMatrix()
 
 }
 
+void SPI_LedMatrix::init()
+{
+    SPI.begin();
+    pinMode(ss_pin, OUTPUT);
+    memset(buf, 0, sizeof(buf));
+    memset(buf2, 0, sizeof(buf2));
+}
+
 void SPI_LedMatrix::clear(int mat_id)
 {
-    for(int i=0; i<LEDS_MATRIX_L; i++) {
+    for(int i=0; i<8; i++) {
         if(mat_id == EYE_LEFT) {
             buf[i] = 0;
         }
