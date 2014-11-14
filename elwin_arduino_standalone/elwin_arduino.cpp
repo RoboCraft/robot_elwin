@@ -349,6 +349,7 @@ int Elwin::make_action()
 
         break;
     default:
+        action_state = ACT_LOOKING;
         break;
     }
 
