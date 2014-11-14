@@ -57,6 +57,7 @@ blinkImg[][8] = {    // Eye animation frames
 uint8_t blinkIndex[] = { 1, 2, 3, 4, 3, 2, 1 }; // Blink bitmap sequence
 uint8_t closeIndex[] = { 1, 2, 3, 4 }; // Close bitmap sequence
 uint8_t openIndex[] = { 3, 2, 1 }; // Open bitmap sequence
+uint8_t squintIndex[] = { 2, 2 }; // squint bitmap sequence
 
 Elwin::Elwin()
 {
@@ -161,6 +162,9 @@ int Elwin::make()
             eyes_state = ST_OPEN;
             eye_id = EYE_RIGHT;
         }
+        else if(c == '0') {
+            action_state = ACT_SLEEP;
+        }
         else if(c == '1') {
             action_state = ACT_LOOKING;
         }
@@ -197,6 +201,9 @@ int Elwin::make()
     else if(eyes_state == ST_BLINK) {
         //make_eye_sequence(eye_id, BLINK_BITMAP, BLINK_SEQUENCE);
         make_blink_bitmap_sequence(eye_id, blinkIndex, sizeof(blinkIndex));
+    }
+    else  if(eyes_state == ST_SQUINT) {
+        make_blink_bitmap_sequence(eye_id, squintIndex, sizeof(squintIndex));
     }
 
     //delay(100);
@@ -244,6 +251,14 @@ int Elwin::make_action()
         if(--head_countdown <= 0) {
             head_countdown = random(700, 1200);
 
+            if( random(100) < 30 &&
+                head_yaw == HEAD_YAW_CENTER &&
+                head_roll == HEAD_ROLL_CENTER &&
+                head_pitch == HEAD_PITCH_CENTER ) {
+                action_state = ACT_SQUINT;
+                act_counter = 200;
+            }
+
             if( random(100) < 30 ) {
                 new_yaw = HEAD_YAW_CENTER;
                 new_roll = HEAD_ROLL_CENTER;
@@ -263,12 +278,12 @@ int Elwin::make_action()
                     new_roll = HEAD_ROLL_CENTER + random(45);
                 }
                 if( random(100) < 50 ) {
-                    new_pitch = HEAD_PITCH_CENTER - random(45);
+                    new_pitch = HEAD_PITCH_CENTER - random(35);
                     newX = 3;
                     newY = 5;
                 }
                 else {
-                    new_pitch = HEAD_PITCH_CENTER + random(45);
+                    new_pitch = HEAD_PITCH_CENTER + random(35);
                     newX = 3;
                     newY = 1;
                 }
@@ -315,6 +330,23 @@ int Elwin::make_action()
             servo[2].write(head_pitch);
         }
 #endif
+        break;
+    case ACT_SQUINT:
+        eye_id = EYE_BOTH;
+        eyes_state = ST_SQUINT;
+        eyeX=3;
+        eyeY=3;
+
+        if(--act_counter  <= 0) {
+            act_counter = 100;
+            Serial.println(F("squint"));
+
+            if( random(100) < 40 ) {
+                action_state = ACT_LOOKING;
+                blink_countdown = 0;
+            }
+        }
+
         break;
     default:
         break;
