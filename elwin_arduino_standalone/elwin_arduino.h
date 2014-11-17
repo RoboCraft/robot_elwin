@@ -14,14 +14,16 @@
 #endif
 
 // actions states:
-enum {ACT_SLEEP=0, ACT_LOOKING, ACT_SQUINT, ACT_MODEST};
+enum {ACT_SLEEP=0, ACT_LOOKING, ACT_SQUINT, ACT_MODEST, ACT_MOVE};
+
+enum {MOVE_STOP=0, MOVE_FORWARD, MOVE_BACWARD, MOVE_LEFT, MOVE_RIGHT};
 
 // eyes states:
 enum {ST_NONE=0, ST_CENTER=1, ST_UP, ST_DOWN, ST_LEFT, ST_RIGHT,
       ST_CLOSE, ST_OPEN, ST_BLINK, ST_SQUINT};
 
-enum {BLINK_BITMAP=0};
-enum {CLOSE_SEQUENCE=0, OPEN_SEQUENCE, BLINK_SEQUENCE};
+enum {BLINK_BITMAP=0, SQUINT_BITMAP};
+enum {CLOSE_SEQUENCE=0, OPEN_SEQUENCE, BLINK_SEQUENCE, SQUINT_SEQUENCE};
 
 class Elwin
 {
@@ -35,9 +37,19 @@ public:
 
     void make_eye_sequence(int eye_id, int bitmap_id, int sequence_id);
     void make_blink_bitmap_sequence(int eye_id, uint8_t* seq, size_t seq_size);
+    void make_bitmap_sequence(int eye_id, const uint8_t bitmap[][8], uint8_t* seq, size_t seq_size);
 
     void check_pupil_position();
 
+    void motor_drive(int motor_id, int dir, int pwm);
+    void move_forward(int pwm);
+    void move_backward(int pwm);
+    void move_left(int pwm);
+    void move_right(int pwm);
+    void move_stop();
+
+    int move_speed;
+    int move_state;
     //int state;
 
     int action_state;
@@ -45,6 +57,8 @@ public:
     int blink_countdown; // countdown to next blink
     int pupil_countdown;
     int newX; int newY;
+
+    MOTOR motors[MOTORS_COUNT];
 
 #if defined(USE_SERVO)
     Servo servo[SERVO_COUNT];

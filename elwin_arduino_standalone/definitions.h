@@ -10,6 +10,10 @@
 #define USE_SERVO       1
 #define USE_LEDMATRIX   1
 
+#if !defined(MOTORS_COUNT)
+#define MOTORS_COUNT 2
+#endif
+
 #if !defined(SERVO_COUNT)
 #define SERVO_COUNT 	3
 #endif
@@ -31,5 +35,18 @@ struct Timings
         loop_time = 0;
     }
 };
+
+// store motor pins
+typedef struct MOTOR
+{
+  int in1;      // INPUT1
+  int in2;      // INPUT2
+  int enable; // ENABLE (pwm)
+} MOTOR;
+
+#define FORWARD HIGH
+#define BACKWARD LOW
+
+#define DEFAULT_SPEED 180
 
 #endif //#ifndef _DEFINITIONS_H_
