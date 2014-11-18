@@ -529,6 +529,11 @@ void Elwin::check_pupil_position()
     if(eyeY < 1) eyeY=1;
     if(eyeX > 5) eyeX=5;
     if(eyeY > 5) eyeY=5;
+
+    if(eyeX == 1 && eyeY == 1) eyeX = 2;
+    if(eyeX == 5 && eyeY == 5) eyeX = 4;
+    if(eyeX == 1 && eyeY == 5) eyeX = 2;
+    if(eyeX == 5 && eyeY == 1) eyeY = 2;
 }
 
 void Elwin::motor_drive(int motor_id, int dir, int pwm)
